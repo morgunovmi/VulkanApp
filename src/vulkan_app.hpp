@@ -21,7 +21,6 @@ struct QueueFamilyIndices {
     }
 };
 
-
 class VulkanApp {
 public:
     void run() {
@@ -121,6 +120,7 @@ private:
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
+        getRequiredExtensions();
         createInfo.enabledExtensionCount = static_cast<uint32_t>(m_instanceExtensions.size());
         createInfo.ppEnabledExtensionNames = m_instanceExtensions.data();
         createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
