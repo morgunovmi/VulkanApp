@@ -1,0 +1,7 @@
+{
+    "name": "vulkantut",
+    "version": "0.0.1",
+    "dependencies": [
+        "spdlog", "fmt", "glm", "glfw3"
+    ]
+}
