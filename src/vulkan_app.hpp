@@ -21,6 +21,7 @@ struct QueueFamilyIndices {
     }
 };
 
+
 class VulkanApp {
 public:
     void run() {
@@ -129,6 +130,21 @@ private:
             throw std::runtime_error("failed to create instance!");
         }
     }
+
+#ifndef NDEBUG
+    void setupDebugMessenger() {
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.pfnUserCallback = debugCallback;
+        createInfo.pUserData = nullptr; // Optional
+
+        if (CreateDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS) {
+            throw std::runtime_error("failed to set up debug messenger!");
+        }
+    }
+#endif
 
     void createSurface() {
         if (glfwCreateWindowSurface(m_instance, m_pWindow, nullptr, &m_surface) != VK_SUCCESS) {
@@ -253,6 +269,9 @@ private:
 
     void initVulkan() {
         createInstance();
+#ifndef NDEBUG
+        setupDebugMessenger();
+#endif
         createSurface();
         pickPhysicalDevice();
         m_queueFamilyIndices = findQueueFamilies(m_physicalDevice);
@@ -266,6 +285,7 @@ private:
     }
 
     void cleanup() {
+        DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         vkDestroyDevice(m_device, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
@@ -297,6 +317,22 @@ private:
   }
 #endif
 
+static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
+}
+
 private:
 
     GLFWwindow* m_pWindow;
@@ -312,6 +348,10 @@ private:
     VkSurfaceKHR m_surface;
     std::vector<const char*> m_instanceExtensions{};
     std::vector<const char*> m_validationLayers{};
+
+#ifndef NDEBUG
+    VkDebugUtilsMessengerEXT m_debugMessenger{VK_NULL_HANDLE};
+#endif
 
     static constexpr std::array<const char*, 1> m_deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
