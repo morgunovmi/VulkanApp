@@ -128,8 +128,8 @@ private:
         createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
         createInfo.ppEnabledLayerNames = m_validationLayers.data();
 
-        populateDebugMessengerCreateInfo(debugCreateInfo);
 #ifndef NDEBUG
+        populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 #endif
 
@@ -295,7 +295,9 @@ private:
     }
 
     void cleanup() {
+#ifndef NDEBUG
         DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+#endif
         vkDestroyDevice(m_device, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
